@@ -33,8 +33,17 @@ cat > /etc/systemd/system/mk.timer <<EOUNIT
 $(cat etc/mk.timer)
 EOUNIT
 
+cat > /etc/systemd/system/mkupdate.service <<EOUNIT
+$(cat etc/mk.service)
+EOUNIT
+
+cat > /etc/systemd/system/mkupdate.timer <<EOUNIT
+$(cat etc/mk.timer)
+EOUNIT
+
 mkdir /var/lib/mk
 systemctl enable mk.timer
+systemctl enable mkupdate.timer
 
 mkdir /usr/lib/razor
 

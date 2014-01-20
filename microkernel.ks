@@ -87,7 +87,6 @@ net-tools
 -prelink
 -setserial
 -ed
--tar
 
 # Remove the authconfig pieces
 -authconfig

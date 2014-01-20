@@ -59,4 +59,42 @@ class MK::Server
             "Can not connect to #{url.host}:#{url.port}\n#{e.to_s}"
     end
   end
+
+  def updates(update=nil)
+    url = URI(MK.config['register'])
+    raise "HTTPS is not yet supported in #{url}" if url.scheme =~ /\Ahttps\Z/i
+    raise "bad URL scheme for #{url}" unless url.scheme =~ /\Ahttp\Z/i
+    
+    path = '/svc/mkupdates'
+    path = path + "/#{update}" if update
+
+    begin
+      Net::HTTP.start(url.host, url.port) do |http|
+        # Build the request object...
+        get = Net::HTTP::Get.new(path, headers)
+
+        # ...submit, and consider the result we got.
+        response = http.request(get)
+
+        case response
+        when Net::HTTPSuccess, Net::HTTPRedirection
+          if response.content_type.downcase == 'application/json'
+            result = JSON.parse(response.body)
+          else
+            result = response.body
+          end
+          result
+        else
+          # This will raise an exception capturing the state of the response.
+          # Yes, that name is terrible; I blame the Ruby folks for that one.
+          response.value
+        end
+      end
+    rescue SocketError => e
+      # This is an infuriatingly uninformative error message if we do not
+      # annotate it with the host and port we tried to talk to
+      raise ConnectionFailedError,
+            "Can not connect to #{url.host}:#{url.port}\n#{e.to_s}"
+    end
+  end
 end

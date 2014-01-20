@@ -7,6 +7,7 @@ require 'singleton'
 require 'forwardable'
 
 require 'pathname'
+require 'digest/md5'
 
 class MK::Node
   include Singleton
@@ -82,5 +83,18 @@ class MK::Node
       # @todo danielp 2013-07-30: I can't find a better way to do this...
       'kernel'  => Facter.kernel + '-' + Facter.kernelversion
     }.reject{|k,v| v.nil?}.map{|k,v| k+'/'+v}.join(' ')
+  end
+
+  def updates
+    updates = {}
+    if File.directory?('/tmp/updates')
+      Pathname.glob('/tmp/updates/*.tar.gz').each do |file|
+        updates[file.basename] = {
+          'md5' => Digest::MD5.hexdigest(File.read(file)
+        }
+      end
+    end
+
+    updates
   end
 end

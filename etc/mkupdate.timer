@@ -1,0 +1,13 @@
+[Unit]
+Description=Razor Microkernel Agent trigger
+After=network.target syslog.target nss-lookup.target
+
+[Timer]
+# We want to make sure this fires before the first register which happens
+# 60 secs after boot, so this will run 10 secs after boot
+OnBootSec=10
+# ...and every hour after we *finished* the last command.
+OnUnitInactiveSec=3600
+
+[Install]
+WantedBy=multi-user.target

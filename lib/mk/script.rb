@@ -3,6 +3,7 @@ require_relative '../mk'
 require 'pathname'
 require 'open3'
 require 'json'
+require 'fileutils'
 
 # A namespace to hold our command line script support code.
 module MK::Script
@@ -68,5 +69,34 @@ module MK::Script
 
     # ...all good, job done.
     return true
+  end
+
+  def update
+    current_updates = MK.node.updates
+    latest_updates  = MK.server.updates
+
+    #Get updates that we either dont have or have a different MD5
+    latest_updates.reject do |k,v|
+      current_updates[k] and current_updates[k][md5] == v[md5]
+    end.each do |k,v|
+      if tar = MK.server.updates(k)
+        unless File.directory?('/tmp/updates')
+          #create the updates directory
+          FileUtils.mkpath('/tmp/updates', 0775)
+        end
+
+        io = File.new("/tmp/updates/#{k}", 'w')
+        io.write(tar)
+        io.close
+
+        if File.directory?(v[root_dir])
+          FileUtils.rm_rf(v[root_dir])
+        end
+
+        FileUtils.mkpath(v[root_dir], :mode => 0775)
+        
+        %x[ tar -xzf /tmp/updates/#{k} -C #{v[root_dir]} ]
+      end
+    end
   end
 end
